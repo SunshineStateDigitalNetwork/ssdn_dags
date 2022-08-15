@@ -1,6 +1,8 @@
 # SSDN DAG template
 
 from datetime import datetime, timedelta
+import sys
+import os
 
 from airflow import DAG
 
@@ -8,6 +10,9 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.decorators import dag, task
 from airflow.models import Variable
+
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+import ssdn_assets
 
 with DAG('ssdn_template',
          default_args={'depends_on_past': False,

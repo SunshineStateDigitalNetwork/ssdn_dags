@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from pathlib import Path
 import sys
+import os
 
 from airflow import DAG
 
@@ -9,12 +9,10 @@ from airflow.operators.python import PythonOperator
 from airflow.decorators import dag, task
 from airflow.models import Variable
 
-PATH = Path(__file__)
-sys.path.append(str(PATH))
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 import ssdn_assets
 
-
-with DAG('ssdn_dynamic_harvet',
+with DAG('ssdn_dynamic_harvest',
          default_args={'depends_on_past': False,
                        'email': ['airflow.example.org'],
                        'email_on_failure': False,
@@ -26,6 +24,10 @@ with DAG('ssdn_dynamic_harvet',
          tags=['ssdn', 'harvest', 'dynamic', 'test'],
          start_date=datetime(2045, 1, 1),
          ) as dag:
+
+    # PATH = Path(__file__)
+    # sys.path.append(str(PATH.absolute()))
+    # import ssdn_assets
 
     # @task
     # def print_env_var():
@@ -53,5 +55,7 @@ with DAG('ssdn_dynamic_harvet',
     for partner in ssdn_assets.list_config_keys(ssdn_assets.harvest_parser):
         partner_harvest = BashOperator(
             task_id=f'harvest_{partner}',
-            # do some bash stuff
+            bash_command='echo $partner',
         )
+
+    partner_harvest
