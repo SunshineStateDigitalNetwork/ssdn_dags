@@ -58,7 +58,7 @@ with DAG('ssdn_dynamic_harvest',
 
     repo_update = BashOperator(
         task_id='update_repos',
-        bash_command=f'bash {PATH}/ssdn_assets/update_repos.sh {Variable.get("ssdn_git_repos")}'
+        bash_command=f'bash {PATH}/ssdn_assets/update_repos.sh {Variable.get("ssdn_git_repos", deserialize_json=True)}'
     )
 
     for partner in ssdn_assets.list_config_keys(ssdn_assets.harvest_parser):
