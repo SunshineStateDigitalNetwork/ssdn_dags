@@ -58,13 +58,14 @@ with DAG('ssdn_dynamic_harvest',
 
     repo_update = BashOperator(
         task_id='repo_update',
-        bash_command=f'bash {PATH}/ssdn_assets/repo_update.sh {Variable.get("ssdn_git_repos")}'
+        bash_command=f'bash {PATH}/ssdn_assets/repo_update.sh {Variable.get("ssdn_git_repos")}',
     )
 
     for partner in ssdn_assets.list_config_keys(ssdn_assets.harvest_parser):
         partner_harvest = BashOperator(
             task_id=f'harvest_{partner}',
-            bash_command='echo $partner',
+            bash_command='python3 -m manatus --profile ssdn harvest -s {partner}',
         )
 
-    repo_update >> partner_harvest
+    partner_harvest.set_upstream(repo_update)
+
