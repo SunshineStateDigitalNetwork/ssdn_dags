@@ -39,15 +39,15 @@ with DAG('ssdn_dynamic_harvest',
     #     print(v)
     #
     # print_env_var = print_env_var()
-    #
+
     # @task
     # def list_print():
-    #     l = Variable.get("ssdn_list", deserialize_json=True)
+    #     l = Variable.get("ssdn_git_repos", deserialize_json=True)
     #     for i in l:
     #         print(i)
     #
     # list_print = list_print()
-    #
+
     # harvest_mdpl = BashOperator(
     #     task_id='harvest_mdpl',
     #     env={"MANATUS_CONFIG": Variable.get('ssdn_env')},
@@ -57,8 +57,8 @@ with DAG('ssdn_dynamic_harvest',
     # print_env_var >> list_print >> harvest_mdpl
 
     repo_update = BashOperator(
-        task_id='update_repos',
-        bash_command=f'bash {PATH}/ssdn_assets/update_repos.sh {Variable.get("ssdn_git_repos", deserialize_json=True)}'
+        task_id='repo_update',
+        bash_command=f'bash {PATH}/ssdn_assets/repo_update.sh {Variable.get("ssdn_git_repos")}'
     )
 
     for partner in ssdn_assets.list_config_keys(ssdn_assets.harvest_parser):
