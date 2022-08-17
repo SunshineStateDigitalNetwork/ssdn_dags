@@ -9,8 +9,11 @@ from airflow.operators.python import PythonOperator
 from airflow.decorators import dag, task
 from airflow.models import Variable
 
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+PATH = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, PATH)
 import ssdn_assets
+
+SSDN_ENV = Variable.get('ssdn_env')
 
 with DAG('ssdn_dynamic_harvest',
          default_args={'depends_on_past': False,
@@ -19,6 +22,7 @@ with DAG('ssdn_dynamic_harvest',
                        'email_on_retry': False,
                        'retries': 1,
                        'retry_delay': timedelta(minutes=5),
+                       'env': {'MANATUS_CONFIG': SSDN_ENV}
                        },
          description='Dynamic harvest test',
          tags=['ssdn', 'harvest', 'dynamic', 'test'],
@@ -52,10 +56,15 @@ with DAG('ssdn_dynamic_harvest',
     #
     # print_env_var >> list_print >> harvest_mdpl
 
+    repo_update = BashOperator(
+        task_id='update_repos',
+        bash_command=f'bash {PATH}/ssdn_assets/update_repos.sh {Variable.get("ssdn_git_repos")}'
+    )
+
     for partner in ssdn_assets.list_config_keys(ssdn_assets.harvest_parser):
         partner_harvest = BashOperator(
             task_id=f'harvest_{partner}',
             bash_command='echo $partner',
         )
 
-    partner_harvest
+    repo_update >> partner_harvest
