@@ -10,12 +10,14 @@ from airflow.decorators import dag, task
 from airflow.models import Variable
 
 PATH = os.path.abspath(os.path.dirname(__file__))
+SSDN_ENV = Variable.get('ssdn_env')
+
+# Import local module
 sys.path.insert(0, PATH)
 import ssdn_assets
 
-SSDN_ENV = Variable.get('ssdn_env')
 
-with DAG('ssdn_dynamic_harvest_test',
+with DAG('ssdn_dynamic_harvest',
          default_args={'depends_on_past': False,
                        'email': ['airflow.example.org'],
                        'email_on_failure': False,
@@ -29,33 +31,6 @@ with DAG('ssdn_dynamic_harvest_test',
          start_date=datetime(2045, 1, 1),
          ) as dag:
 
-    # PATH = Path(__file__)
-    # sys.path.append(str(PATH.absolute()))
-    # import ssdn_assets
-
-    # @task
-    # def print_env_var():
-    #     v = Variable.get("ssdn_env")
-    #     print(v)
-    #
-    # print_env_var = print_env_var()
-
-    # @task
-    # def list_print():
-    #     l = Variable.get("ssdn_git_repos", deserialize_json=True)
-    #     for i in l:
-    #         print(i)
-    #
-    # list_print = list_print()
-
-    # harvest_mdpl = BashOperator(
-    #     task_id='harvest_mdpl',
-    #     env={"MANATUS_CONFIG": Variable.get('ssdn_env')},
-    #     bash_command='python3 -m manatus --profile ssdn harvest -s mdpl'
-    # )
-    #
-    # print_env_var >> list_print >> harvest_mdpl
-
     repo_update = BashOperator(
         task_id='repo_update',
         bash_command=f'bash {PATH}/ssdn_assets/repo_update.sh {Variable.get("ssdn_git_repos")}',
@@ -67,5 +42,4 @@ with DAG('ssdn_dynamic_harvest_test',
             bash_command=f'python3 -m manatus --profile ssdn harvest -s {partner}',
         )
 
-    partner_harvest.set_upstream(repo_update)
-
+    repo_update.set_downstream(partner_harvest)
