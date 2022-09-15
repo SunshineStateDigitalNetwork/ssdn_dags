@@ -8,6 +8,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.decorators import dag, task
 from airflow.models import Variable
+from airflow.models.baseoperator import chain
 
 PATH = os.path.abspath(os.path.dirname(__file__))
 SSDN_ENV = Variable.get('ssdn_env')
@@ -28,7 +29,9 @@ with DAG('ssdn_dynamic_harvest',
                        },
          description='Dynamic harvest test',
          tags=['ssdn', 'harvest', 'dynamic', 'test'],
-         start_date=datetime(2045, 1, 1),
+         start_date=datetime(2022, 1, 1),
+         schedule_interval='@quarterly',
+         catchup=False,
          ) as dag:
 
     repo_update = BashOperator(
@@ -36,10 +39,25 @@ with DAG('ssdn_dynamic_harvest',
         bash_command=f'bash {PATH}/ssdn_assets/repo_update.sh {Variable.get("ssdn_git_repos")}',
     )
 
+    #who_am_i = BashOperator(
+    #    task_id='who_am_i',
+    #    bash_command='whoami',
+    #)
+
+    clean_up = BashOperator(
+        task_id='clean_up',
+        bash_command=f'rm -rf /opt/ssdn/OAI_export/*/*.xml',
+    )  # TODO: path needs to be pulled from manatus.cfg
+
     for partner in ssdn_assets.list_config_keys(ssdn_assets.harvest_parser):
         partner_harvest = BashOperator(
             task_id=f'harvest_{partner}',
             bash_command=f'python3 -m manatus --profile ssdn harvest -s {partner}',
         )
 
-    repo_update.set_downstream(partner_harvest)
+        partner_transform = BashOperator(
+            task_id=f'transform_{partner}',
+            bash_command=f'python3 -m manatus --profile ssdn transform -s {partner}',
+        )
+
+        chain([repo_update , clean_up], partner_harvest, partner_transform)
