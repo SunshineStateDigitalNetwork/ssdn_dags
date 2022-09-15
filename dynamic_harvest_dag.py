@@ -39,10 +39,10 @@ with DAG('ssdn_dynamic_harvest',
         bash_command=f'bash {PATH}/ssdn_assets/repo_update.sh {Variable.get("ssdn_git_repos")}',
     )
 
-    #who_am_i = BashOperator(
-    #    task_id='who_am_i',
-    #    bash_command='whoami',
-    #)
+    s3_upload = BashOperator(
+        task_id='s3_upload',
+        bash_command='whoami',
+    )
 
     clean_up = BashOperator(
         task_id='clean_up',
@@ -60,4 +60,4 @@ with DAG('ssdn_dynamic_harvest',
             bash_command=f'python3 -m manatus --profile ssdn transform -s {partner}',
         )
 
-        chain([repo_update , clean_up], partner_harvest, partner_transform)
+        chain([repo_update , clean_up], partner_harvest, partner_transform, [s3_upload])
