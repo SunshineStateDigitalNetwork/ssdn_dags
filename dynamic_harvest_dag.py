@@ -60,4 +60,4 @@ with DAG('ssdn_dynamic_harvest',
             bash_command=f'python3 -m manatus --profile ssdn transform -s {partner}',
         )
 
-        chain([repo_update , clean_up], partner_harvest, partner_transform, [s3_upload])
+        chain([repo_update, clean_up], partner_harvest, partner_transform, [s3_upload])
