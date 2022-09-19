@@ -46,8 +46,8 @@ with DAG('ssdn_dynamic_harvest',
 
     clean_up = BashOperator(
         task_id='clean_up',
-        bash_command=f'rm -rf {ssdn_assets.OAI_PATH}*/*.xml',
-    )  # TODO: path needs to be pulled from manatus.cfg
+        bash_command=f'rm -rf {ssdn_assets.OAI_PATH}/*/*.xml',
+    )
 
     for partner in ssdn_assets.list_config_keys(ssdn_assets.harvest_parser):
         partner_harvest = BashOperator(
