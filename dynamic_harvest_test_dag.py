@@ -67,5 +67,5 @@ with DAG('ssdn_dynamic_harvest_test',
             bash_command=f'python3 -m manatus --profile ssdn harvest -s {partner}',
         )
 
-    partner_harvest.set_upstream(repo_update)
+        repo_update >> partner_harvest
 

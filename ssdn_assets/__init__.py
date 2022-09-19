@@ -13,5 +13,9 @@ scenario_parser = configparser.ConfigParser()
 scenario_parser.read(os.path.join(CONFIG_PATH, 'manatus_scenarios.cfg'))
 
 
+OAI_PATH = os.path.abspath(manatus_config['ssdn']['InFilePath'])
+JSONL_PATH = os.path.abspath(manatus_config['ssdn']['OutFilePath'])
+
+
 def list_config_keys(config_parser):
     return [section for section in config_parser.sections()]

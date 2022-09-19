@@ -43,10 +43,15 @@ with DAG('ssdn_harvest_test',
 
     #list_print = list_print()
 
-    harvest_mdpl = BashOperator(
-        task_id='harvest_mdpl',
-        env={"MANATUS_CONFIG": Variable.get('ssdn_env')},
-        bash_command='python3 -m manatus --profile ssdn harvest -s mdpl'
+    # harvest_mdpl = BashOperator(
+    #     task_id='harvest_mdpl',
+    #     env={"MANATUS_CONFIG": Variable.get('ssdn_env')},
+    #     bash_command='python3 -m manatus --profile ssdn harvest -s mdpl'
+    # )
+
+    echo_xml_path = BashOperator(
+        task_id='echo_xml_path',
+        bash_command=f'echo {ssdn_assets.OAI_PATH}',
     )
 
-    print_env_var >> harvest_mdpl
+    print_env_var >> echo_xml_path
