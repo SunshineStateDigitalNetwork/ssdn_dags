@@ -47,7 +47,7 @@ with DAG('ssdn_single_harvest',
     clean_up = BashOperator(
         task_id='clean_up',
         env={'DATA_PATH': ssdn_assets.OAI_PATH},
-        bash_command='rm -rf {{ DATA_PATH }}/{{ dag_run.conf["partner"] }}/*.xml',
+        bash_command='rm -rf $DATA_PATH/{{ dag_run.conf["partner"] }}/*.xml',
     )
 
     partner_harvest = BashOperator(
