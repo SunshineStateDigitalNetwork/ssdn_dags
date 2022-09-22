@@ -45,8 +45,8 @@ with DAG('ssdn_single_transform',
     )
 
     partner_transform = BashOperator(
-        task_id=f'sing_transform',
-        bash_command='python3 -m manatus --profile ssdn transform -s {{ dag_run.conf["partner"] }}',
+        task_id=f'single_transform',
+        bash_command='python3 -m manatus --profile ssdn transform -s {{ dag_run.conf["partner"] }} --to_console',
     )
 
     chain(repo_update, partner_transform, s3_upload)
