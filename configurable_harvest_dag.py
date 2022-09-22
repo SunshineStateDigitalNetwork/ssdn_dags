@@ -46,12 +46,13 @@ with DAG('ssdn_single_harvest',
 
     clean_up = BashOperator(
         task_id='clean_up',
-        bash_command=f'rm -rf {ssdn_assets.OAI_PATH}/{{ dag_run.conf["partner"] }}/*.xml',
+        env={'DATA_PATH': ssdn_assets.OAI_PATH},
+        bash_command='rm -rf {{ DATA_PATH }}/{{ dag_run.conf["partner"] }}/*.xml',
     )
 
     partner_harvest = BashOperator(
         task_id=f'single_harvest',
-        bash_command=f'python3 -m manatus --profile ssdn harvest -s {{ dag_run.conf["partner"] }}',
+        bash_command='python3 -m manatus --profile ssdn harvest -s {{ dag_run.conf["partner"] }}',
     )
 
     chain([repo_update, clean_up], partner_harvest, [s3_upload])
