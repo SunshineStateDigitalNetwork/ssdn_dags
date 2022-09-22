@@ -1,3 +1,9 @@
+"""
+## Single harvest DAG
+
+Trigger with a config: `{"partner": "<partner_key">}`
+"""
+
 from datetime import datetime, timedelta
 import sys
 import os
@@ -28,10 +34,11 @@ with DAG('ssdn_single_harvest',
                        'env': {'MANATUS_CONFIG': SSDN_ENV}
                        },
          description='Single partner harvest',
-         tags=['ssdn', 'harvest', ],
+         tags=['ssdn', 'harvest', 'configure', ],
          start_date=datetime(2022, 1, 1),
          schedule_interval='@quarterly',
          catchup=False,
+         doc_md=__doc__,
          ) as dag:
 
     repo_update = BashOperator(
