@@ -1,7 +1,7 @@
 """
 ## Single harvest DAG
 
-Trigger with a config: `{"partner": "<partner_key">}`
+Trigger with a config: `{"partner": "<partner_key>"}`
 """
 
 from datetime import datetime, timedelta
@@ -59,7 +59,7 @@ with DAG('ssdn_single_harvest',
 
     partner_harvest = BashOperator(
         task_id=f'single_harvest',
-        bash_command='python3 -m manatus --profile ssdn harvest -s {{ dag_run.conf["partner"] }}',
+        bash_command='python3 -m manatus --profile ssdn -v harvest -s {{ dag_run.conf["partner"] }}',
     )
 
     chain([repo_update, clean_up], partner_harvest, [s3_upload])

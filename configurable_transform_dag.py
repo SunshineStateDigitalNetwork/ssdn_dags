@@ -1,7 +1,7 @@
 """
 ## Single transformation DAG
 
-Trigger with a config: `{"partner": "<partner_key">}`
+Trigger with a config: `{"partner": "<partner_key>"}`
 """
 
 from datetime import datetime, timedelta
@@ -53,7 +53,7 @@ with DAG('ssdn_single_transform',
 
     partner_transform = BashOperator(
         task_id=f'single_transform',
-        bash_command='python3 -m manatus --profile ssdn transform -s {{ dag_run.conf["partner"] }} --to_console',
+        bash_command='python3 -m manatus --profile ssdn -v transform -s {{ dag_run.conf["partner"] }} --to_console',
     )
 
     chain(repo_update, partner_transform, s3_upload)
