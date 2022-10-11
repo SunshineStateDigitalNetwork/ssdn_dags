@@ -31,7 +31,9 @@ with DAG('ssdn_single_harvest',
                        'email_on_retry': False,
                        'retries': 1,
                        'retry_delay': timedelta(minutes=5),
-                       'env': {'MANATUS_CONFIG': SSDN_ENV}
+                       'env': {'MANATUS_CONFIG': SSDN_ENV,
+                               
+                              },
                        },
          description='Single partner harvest',
          tags=['ssdn', 'harvest', 'configure', ],
