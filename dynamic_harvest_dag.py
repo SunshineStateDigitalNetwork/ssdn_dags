@@ -51,6 +51,11 @@ with DAG('ssdn_dynamic_harvest',
         bash_command='whoami',
     )
 
+    count_records = BashOperator(
+        task_id='count_records',
+        bash_command=f'python3 {PATH}/ssdn_assets/count_records.py {ssdn_assets.JSONL_PATH}'
+    )
+
     clean_up = BashOperator(
         task_id='clean_up',
         bash_command=f'rm -rf {ssdn_assets.OAI_PATH}/*/*.xml',
@@ -77,4 +82,4 @@ with DAG('ssdn_dynamic_harvest',
             """,
         )
 
-        chain([repo_update, clean_up], partner_harvest, partner_transform, [s3_upload])
+        chain([repo_update, clean_up], partner_harvest, partner_transform, [count_records])
