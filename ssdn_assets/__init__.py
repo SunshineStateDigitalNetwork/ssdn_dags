@@ -1,5 +1,6 @@
 import configparser
 import os
+import json
 from pathlib import Path
 from datetime import date
 
@@ -19,3 +20,12 @@ JSONL_PATH = f"{manatus_config['ssdn']['OutFilePath']}/{manatus_config['ssdn']['
 
 def list_config_keys(config_parser):
     return [section for section in config_parser.sections()]
+
+
+def add_json(source, target):
+    with open(target, 'a', encoding='utf-8', newline='\n') as json_out:
+        source_file = open(source)
+        source_json = json.load(source_file)
+        for rec in source_json:
+            json_out.write(json.dumps(rec), + '\n')
+        source_file.close()
