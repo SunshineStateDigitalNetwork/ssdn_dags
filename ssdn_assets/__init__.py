@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from datetime import date
 
+from manatus.source_resource import DPLARecordEncoder
+
 CONFIG_PATH = Path(os.getenv('MANATUS_CONFIG'))
 manatus_config = configparser.ConfigParser()
 manatus_config.read(os.path.join(CONFIG_PATH, 'manatus.cfg'))
@@ -27,5 +29,5 @@ def add_json(source, target):
         source_file = open(source)
         source_json = json.load(source_file)
         for rec in source_json:
-            json_out.write(json.dumps(rec), + '\n')
+            json_out.write(f"{json.dumps(rec, cls=DPLARecordEncoder)}\n")
         source_file.close()
