@@ -46,10 +46,16 @@ with DAG('ssdn_dynamic_harvest',
         bash_command=f'bash {PATH}/ssdn_assets/repo_update.sh {Variable.get("ssdn_git_repos")}',
     )
 
-    add_flmem = PythonOperator(
-        task_id='add_flmem',
-        python_callable=ssdn_assets.add_json(Variable.get("flmem_data"), ssdn_assets.JSONL_PATH),
-    )
+    # add_flmem = PythonOperator(
+    #     task_id='add_flmem',
+    #     python_callable=ssdn_assets.add_json(Variable.get("flmem_data"), ssdn_assets.JSONL_PATH),
+    # )
+
+    @task(task_id='add_flmem')
+    def add_flmem():
+        ssdn_assets.add_json(Variable.get("flmem_data"), ssdn_assets.JSONL_PATH)
+
+    add_data = add_flmem()
 
     count_records = BashOperator(
         task_id='count_records',
@@ -82,4 +88,4 @@ with DAG('ssdn_dynamic_harvest',
             """,
         )
 
-        chain([repo_update, clean_up], partner_harvest, partner_transform, add_flmem, [count_records])
+        chain([repo_update, clean_up], partner_harvest, partner_transform, add_data, [count_records])
