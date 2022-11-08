@@ -111,7 +111,8 @@ def dedupe_records(fp):
     shutil.move(fp, fp + ".bak")
     seen = []
     out = []
-    for rec in _rec_gen(fp):
+    for rec in _rec_gen(fp + '.bak'):
+        logger.debug(f"Checking {rec['isShownAt']}")
         if rec['isShownAt'] not in seen:
             seen.append(rec['isShownAt'])
             out.append(rec)
