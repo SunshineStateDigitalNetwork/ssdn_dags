@@ -74,7 +74,7 @@ def _sub_gen(rec):
 
 def dpla_local_subjects(fp):
     import shutil
-    from dpla_local_map import dpla_local_map
+    from .dpla_local_map import dpla_local_map
 
     shutil.move(fp, fp + ".bak")
     out = open(fp, 'a', encoding='utf8', newline='\n')
