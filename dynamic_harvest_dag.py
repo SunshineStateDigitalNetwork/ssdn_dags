@@ -12,7 +12,7 @@ from airflow import DAG
 
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from airflow.decorators import dag, task
+from airflow.decorators import task
 from airflow.models import Variable
 from airflow.models.baseoperator import chain
 
@@ -41,31 +41,44 @@ with DAG('ssdn_dynamic_harvest',
          doc_md=__doc__,
          ) as dag:
 
+    # Update ssdn config and maps git repos
     repo_update = BashOperator(
         task_id='repo_update',
         bash_command=f'bash {PATH}/ssdn_assets/repo_update.sh {Variable.get("ssdn_git_repos")}',
     )
 
-    # add_flmem = PythonOperator(
-    #     task_id='add_flmem',
-    #     python_callable=ssdn_assets.add_json(Variable.get("flmem_data"), ssdn_assets.JSONL_PATH),
-    # )
-
-    @task(task_id='add_flmem')
-    def add_flmem():
-        ssdn_assets.add_json(Variable.get("flmem_data"), ssdn_assets.JSONL_PATH)
-
-    add_data = add_flmem()
-
-    count_records = BashOperator(
-        task_id='count_records',
-        bash_command=f'python3 {PATH}/ssdn_assets/count_records.py {ssdn_assets.JSONL_PATH}'
-    )
-
+    # Clean up OAI data path
     clean_up = BashOperator(
         task_id='clean_up',
         bash_command=f'rm -rf {ssdn_assets.OAI_PATH}/*/*.xml',
     )
+
+    @task(task_id='add_flmem')
+    def add_flmem():
+        """Add rolling Florida Memory JSON"""
+        ssdn_assets.add_json(Variable.get("flmem_data"), ssdn_assets.JSONL_PATH)
+    add_data = add_flmem()
+
+    # @task(task_id='dedupe_records')
+    # def dedupe():
+    #     """Dedupe records"""
+    #     # TODO
+
+    @task(task_id='dpla_local_subjects')
+    def dpla_local_subjects():
+        """
+        Add SSDN subject maps: https://github.com/mrmiguez/dpla_local_subjects/blob/master/dpla_local_map/__init__.py
+        """
+        ssdn_assets.dpla_local_subjects(ssdn_assets.JSONL_PATH)
+        # attach a logger?
+        print(f"Calling: dpla_local_subjects 1")
+    dpla_local_subjects = dpla_local_subjects()
+
+    @task(task_id='count_records')
+    def count_records():
+        """Count and print records by provider"""
+        ssdn_assets.count_records(ssdn_assets.JSONL_PATH)
+    count_records = count_records()
 
     for partner in ssdn_assets.list_config_keys(ssdn_assets.harvest_parser):
         partner_harvest = BashOperator(
@@ -88,4 +101,5 @@ with DAG('ssdn_dynamic_harvest',
             """,
         )
 
-        chain([repo_update, clean_up], partner_harvest, partner_transform, add_data, [count_records])
+        chain([repo_update, clean_up], partner_harvest, partner_transform, add_data, count_records)
+        # TODO: add dedupe and subject tasks to chain
