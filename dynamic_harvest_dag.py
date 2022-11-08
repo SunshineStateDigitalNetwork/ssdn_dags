@@ -57,12 +57,13 @@ with DAG('ssdn_dynamic_harvest',
     def add_flmem():
         """Add rolling Florida Memory JSON"""
         ssdn_assets.add_json(Variable.get("flmem_data"), ssdn_assets.JSONL_PATH)
-    add_data = add_flmem()
+    add_flmem = add_flmem()
 
-    # @task(task_id='dedupe_records')
-    # def dedupe():
-    #     """Dedupe records"""
-    #     # TODO
+    @task(task_id='dedupe_records')
+    def dedupe():
+        """Dedupe records"""
+        ssdn_assets.dedupe_records(ssdn_assets.JSONL_PATH)
+    dedupe_records = dedupe()
 
     @task(task_id='dpla_local_subjects')
     def dpla_local_subjects():
@@ -70,8 +71,6 @@ with DAG('ssdn_dynamic_harvest',
         Add SSDN subject maps: https://github.com/mrmiguez/dpla_local_subjects/blob/master/dpla_local_map/__init__.py
         """
         ssdn_assets.dpla_local_subjects(ssdn_assets.JSONL_PATH)
-        # attach a logger?
-        print(f"Calling: dpla_local_subjects 1")
     dpla_local_subjects = dpla_local_subjects()
 
     @task(task_id='count_records')
@@ -101,6 +100,4 @@ with DAG('ssdn_dynamic_harvest',
             """,
         )
 
-        chain([repo_update, clean_up], partner_harvest, partner_transform, dpla_local_subjects, add_data, count_records)
-
-        # TODO: add dedupe and subject tasks to chain
+        chain([repo_update, clean_up], partner_harvest, partner_transform, add_flmem, dedupe_records,  dpla_local_subjects, count_records)

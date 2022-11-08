@@ -74,23 +74,13 @@ def count_records(fp):
         print(item, ': ', counts[item])
 
 
-def dedupe_records(fp):
+def _rec_gen(fp):
     """
-
-    :param fp:
-    :return:
-    """
-    logger.info(f"Deduping records = {fp}")
-    pass
-
-
-def _rec_gen(source_file):
-    """
-    :param source_file: JSON file of SSDN records
+    :param fp: JSON file of SSDN records
     :return: Generator or records in source_file
     """
-    with open(source_file + ".bak") as f:
-        print(f"Calling: dpla_local_subjects 3")
+    with open(fp) as f:
+        logger.debug(f"Record iterator for {fp}")
         for line in f:
             yield json.loads(line)
 
@@ -100,12 +90,38 @@ def _sub_gen(rec):
     :param rec: JSON record
     :return: Generator of subjects in rec
     """
-    print(f"Calling: dpla_local_subjects 4")
+    logger.debug(f"Subject iterator for - {rec['isShownAt']}")
     try:
         for sub in rec['sourceResource']['subject']:
             yield sub
     except KeyError:
         pass
+
+
+def dedupe_records(fp):
+    """
+
+    :param fp: Path to JSONL document
+    :return:
+    """
+    import shutil
+
+    logger.info(f"Deduping records = {fp}")
+    logger.info(f"Backing up {fp} to {fp}.bak")
+    shutil.move(fp, fp + ".bak")
+    seen = []
+    out = []
+    for rec in _rec_gen(fp):
+        if rec['isShownAt'] not in seen:
+            seen.append(rec['isShownAt'])
+            out.append(rec)
+        else:
+            logger.__setattr__("provider", str(rec['dataProvider']))
+            logger.error('Duplicate record - {}'.format(rec['isShownAt']))
+
+    with open(fp, 'a', encoding='utf8', newline='\n') as out_fp:
+        for rec in out:
+            out_fp.write(json.dumps(rec) + '\n')
 
 
 def dpla_local_subjects(fp):
@@ -114,10 +130,11 @@ def dpla_local_subjects(fp):
 
     logger.info(f"Backing up {fp} to {fp}.bak")
     shutil.move(fp, fp + ".bak")
-    out = open(fp, 'a', encoding='utf8', newline='\n')
-    print(f"Calling: dpla_local_subjects 2")
-    for rec in _rec_gen(fp):
+    out_fp = open(fp, 'a', encoding='utf8', newline='\n')
+    for rec in _rec_gen(fp + '.bak'):
+        logger.debug(f"Checking {rec['isShownAt']}")
         for sub in _sub_gen(rec):
+            logger.debug(f"Checking {sub}")
             '''
             check existing subjects against mapped terms 
             and make sure supplied subject isn't already
@@ -129,10 +146,12 @@ def dpla_local_subjects(fp):
                                                                                                       'subject']]:
                 if len(dpla_local_map[sub['name']]) > 1:
                     for item in dpla_local_map[sub['name']]:
+                        logger.info(f"Adding {item[0]} & {item[0]} to {rec['isShownAt']}")
                         rec['sourceResource']['subject'].append({'name': item[0], "@id": item[1]})
                     break
                 else:
+                    logger.info(f"Adding {dpla_local_map[sub['name']][0][0]} & {dpla_local_map[sub['name']][0][1]} to {rec['isShownAt']}")
                     rec['sourceResource']['subject'].append(
                         {'name': dpla_local_map[sub['name']][0][0], "@id": dpla_local_map[sub['name']][0][1]})
                     break
-        out.write(json.dumps(rec) + '\n')
+        out_fp.write(json.dumps(rec) + '\n')
