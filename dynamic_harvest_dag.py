@@ -101,5 +101,6 @@ with DAG('ssdn_dynamic_harvest',
             """,
         )
 
-        chain([repo_update, clean_up], partner_harvest, partner_transform, add_data, count_records)
+        chain([repo_update, clean_up], partner_harvest, partner_transform, dpla_local_subjects, add_data, count_records)
+
         # TODO: add dedupe and subject tasks to chain
