@@ -1,11 +1,15 @@
 import configparser
 import os
 import json
+import logging
 from pathlib import Path
 from datetime import date
 from collections import Counter
 
 from manatus.source_resource import DPLARecordEncoder
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 CONFIG_PATH = Path(os.getenv('MANATUS_CONFIG'))
 manatus_config = configparser.ConfigParser()
@@ -22,30 +26,62 @@ JSONL_PATH = f"{manatus_config['ssdn']['OutFilePath']}/{manatus_config['ssdn']['
 
 
 def list_config_keys(config_parser):
+    """
+
+    :param config_parser:
+    :return:
+    """
     return [section for section in config_parser.sections()]
 
 
 def add_json(source, target):
+    """
+    Add JSON from source file to target file as JSONL
+    :param source: Path to JSON document
+    :param target: JSONL output document
+    :return:
+    """
+    logger.info(f"Adding {source} JSON to {target}")
     with open(target, 'a', encoding='utf-8', newline='\n') as json_out:
         source_file = open(source)
         source_json = json.load(source_file)
+        logger.debug(f"Loaded {source} as JSON to add to {target}")
         for rec in source_json:
             json_out.write(f"{json.dumps(rec, cls=DPLARecordEncoder)}\n")
         source_file.close()
+        logger.debug(f"Added {source} to {target}")
 
 
 def count_records(fp):
+    """
+    Count record contributions by provider
+    :param fp: Path to JSONL document
+    :return:
+    """
     data_providers = []
 
     with open(fp) as f:
+        logger.info(f"Reading {fp} to count records")
         for line in f:
             rec = json.loads(line)
             data_providers.append(rec['dataProvider'])
 
+    logger.debug(f"Counting records - {fp}")
     counts = Counter(data_providers)
 
+    logger.debug(f"Printing record count - {fp}")
     for item in list(counts):
         print(item, ': ', counts[item])
+
+
+def dedupe_records(fp):
+    """
+
+    :param fp:
+    :return:
+    """
+    logger.info(f"Deduping records = {fp}")
+    pass
 
 
 def _rec_gen(source_file):
@@ -76,6 +112,7 @@ def dpla_local_subjects(fp):
     import shutil
     from .dpla_local_map import dpla_local_map
 
+    logger.info(f"Backing up {fp} to {fp}.bak")
     shutil.move(fp, fp + ".bak")
     out = open(fp, 'a', encoding='utf8', newline='\n')
     print(f"Calling: dpla_local_subjects 2")
