@@ -50,7 +50,7 @@ with DAG('ssdn_dynamic_harvest',
     # Clean up OAI data path
     clean_up = BashOperator(
         task_id='clean_up',
-        bash_command=f'rm -rf {ssdn_assets.OAI_PATH}/*/*.xml',
+        bash_command=f'rm -rf {ssdn_assets.OAI_PATH}/*/*.xml && rm -f {ssdn_assets.LOG_PATH}/*',
     )
 
     @task(task_id='add_flmem')
