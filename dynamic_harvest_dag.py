@@ -79,6 +79,16 @@ with DAG('ssdn_dynamic_harvest',
         ssdn_assets.count_records(ssdn_assets.JSONL_PATH)
     count_records = count_records()
 
+    dlis_internet_archive = BashOperator(
+        task_id=f'transform_dlis_internet_archive',
+        bash_command=f'python3 -m manatus --profile ssdn transform -s statelibraryandarchivesofflorida',
+        doc_md="""\
+        ### DLIS Internet Archive harvest and transform
+
+        Trigger the transformation separately since it's not triggered by dynamic task
+        """,
+    )
+
     for partner in ssdn_assets.list_config_keys(ssdn_assets.harvest_parser):
         partner_harvest = BashOperator(
             task_id=f'harvest_{partner}',
@@ -100,4 +110,4 @@ with DAG('ssdn_dynamic_harvest',
             """,
         )
 
-        chain([repo_update, clean_up], partner_harvest, partner_transform, add_flmem, dedupe_records,  dpla_local_subjects, count_records)
+        chain([repo_update, clean_up], partner_harvest, partner_transform, dlis_internet_archive, add_flmem, dedupe_records,  dpla_local_subjects, count_records)
