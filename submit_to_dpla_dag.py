@@ -32,8 +32,8 @@ with DAG('submit_to_dpla',
                        'retry_delay': timedelta(minutes=5),
                        },
          description='Submit finished data to DPLA',
-         tags=['ssdn',],
-         start_date=datetime(2045, 1, 1),
+         tags=['ssdn', 'submit'],
+         start_date=datetime(2023, 1, 1),
          ) as dag:
 
     s3_upload = BashOperator(
