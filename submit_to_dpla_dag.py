@@ -11,10 +11,7 @@ import os
 from airflow import DAG
 
 from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
-from airflow.decorators import dag, task
 from airflow.models import Variable
-from airflow.models.baseoperator import chain
 
 PATH = os.path.abspath(os.path.dirname(__file__))
 SSDN_ENV = Variable.get('ssdn_env')
@@ -38,12 +35,12 @@ with DAG('submit_to_dpla',
 
     s3_upload = BashOperator(
         task_id='s3_upload',
-        bash_command='aws s3 ls s3://dpla-hub-fl && echo {{ dag_run.conf["file"] }}',
+        bash_command='aws s3 cp {{ dag_run.conf["file"] }} s3://dpla-hub-fl/',
     )
 
-    print_working_dir = BashOperator(
-        task_id='pwd',
-        bash_command='pwd',
+    check_s3_contents = BashOperator(
+        task_id='check_s3_contents',
+        bash_command='aws ls s3://dpla-hub-fl',
     )
 
-    print_working_dir >> s3_upload
+    s3_upload >> check_s3_contents
