@@ -40,7 +40,7 @@ with DAG('submit_to_dpla',
 
     check_s3_contents = BashOperator(
         task_id='check_s3_contents',
-        bash_command='aws ls s3://dpla-hub-fl',
+        bash_command='aws s3 ls s3://dpla-hub-fl',
     )
 
     s3_upload >> check_s3_contents
