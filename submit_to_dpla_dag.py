@@ -1,4 +1,8 @@
-# SSDN DAG template
+"""
+## Submit data to DPLA DAG
+
+Trigger with a config: `{"file": "<data submission file>"}`
+"""
 
 from datetime import datetime, timedelta
 import sys
@@ -10,6 +14,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.decorators import dag, task
 from airflow.models import Variable
+from airflow.models.baseoperator import chain
 
 PATH = os.path.abspath(os.path.dirname(__file__))
 SSDN_ENV = Variable.get('ssdn_env')
@@ -18,7 +23,7 @@ SSDN_ENV = Variable.get('ssdn_env')
 sys.path.insert(0, PATH)
 import ssdn_assets
 
-with DAG('ssdn_template',
+with DAG('submit_to_dpla',
          default_args={'depends_on_past': False,
                        'email': ['airflow.example.org'],
                        'email_on_failure': False,
@@ -26,30 +31,19 @@ with DAG('ssdn_template',
                        'retries': 1,
                        'retry_delay': timedelta(minutes=5),
                        },
-         description='Template DAG for SSDN',
+         description='Submit finished data to DPLA',
          tags=['ssdn',],
          start_date=datetime(2045, 1, 1),
          ) as dag:
 
-    @task
-    def print_env_var():
-        v = Variable.get("ssdn_env")
-        print(v)
-
-    print_env_var = print_env_var()
-
-    @task
-    def list_print():
-        l = Variable.get("ssdn_list", deserialize_json=True)
-        for i in l:
-            print(i)
-
-    list_print = list_print()
-
-    harvest_mdpl = BashOperator(
-        task_id='harvest_mdpl',
-        env={"MANATUS_CONFIG": Variable.get('ssdn_env')},
-        bash_command='python3 -m manatus --profile ssdn harvest -s mdpl'
+    s3_upload = BashOperator(
+        task_id='s3_upload',
+        bash_command='aws s3 ls s3://dpla-hub-fl && echo {{ dag_run.conf["partner"] }}',
     )
 
-    print_env_var >> list_print >> harvest_mdpl
+    print_working_dir = BashOperator(
+        task_id='pwd',
+        bash_command='pwd',
+    )
+
+    chain(print_working_dir, s3_upload)
