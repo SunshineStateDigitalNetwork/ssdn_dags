@@ -38,7 +38,7 @@ with DAG('submit_to_dpla',
 
     s3_upload = BashOperator(
         task_id='s3_upload',
-        bash_command='aws s3 ls s3://dpla-hub-fl && echo {{ dag_run.conf["partner"] }}',
+        bash_command='aws s3 ls s3://dpla-hub-fl && echo {{ dag_run.conf["file"] }}',
     )
 
     print_working_dir = BashOperator(
@@ -46,4 +46,4 @@ with DAG('submit_to_dpla',
         bash_command='pwd',
     )
 
-    chain(print_working_dir, s3_upload)
+    print_working_dir >> s3_upload
