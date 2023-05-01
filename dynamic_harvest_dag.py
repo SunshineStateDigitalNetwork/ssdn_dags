@@ -2,6 +2,10 @@
 ## Dynamic harvest and transform DAG
 
 Iterates through config files to dynamically build harvest and transform tasks
+    Airflow system variables:
+        - ssdn_env
+        - ssdn_git_repos
+        - flmem_data
 """
 
 from datetime import datetime, timedelta

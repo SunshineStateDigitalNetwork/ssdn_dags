@@ -6,6 +6,8 @@ from pathlib import Path
 from datetime import date
 from collections import Counter
 
+from .gdrive_extensions import *
+
 from manatus.source_resource import DPLARecordEncoder
 
 logger = logging.getLogger(__name__)
@@ -157,3 +159,53 @@ def dpla_local_subjects(fp):
                         {'name': dpla_local_map[sub['name']][0][0], "@id": dpla_local_map[sub['name']][0][1]})
                     break
         out_fp.write(json.dumps(rec) + '\n')
+
+
+def partner_log_record_collector(partner, log_record_list):
+    """
+
+    :param partner:
+    :param log_record_list:
+    :return:
+    """
+    for d in log_record_list:
+        if d['partner'] == partner:
+            yield d
+
+
+def spreadsheet_separator(log_spreadsheet_fp):
+    import datetime
+    import csv
+    """
+    
+    :param log_spreadsheet_fp: 
+    :return: 
+    """
+    DATE = datetime.date.today()
+    log_spreadsheet_fp = Path(log_spreadsheet_fp)
+
+    partner_list = []
+    partner_log_record_list = []
+    partner_log_fp_dict = dict()
+
+    log_spreadsheet_fh = open(log_spreadsheet_fp)
+    fieldnames = ['partner', 'process_name', 'timestamp', 'level', 'msg']
+
+    tsv = csv.DictReader(log_spreadsheet_fh,
+                         delimiter='\t',
+                         fieldnames=fieldnames)
+    for line in tsv:
+        partner_list.append(line['partner'])
+        partner_log_record_list.append({field: line[field] for field in fieldnames})
+
+    log_spreadsheet_fh.close()
+    counts = Counter(partner_list)
+    for partner in counts:
+        partner_log_fp_dict[partner] = f'{log_spreadsheet_fp.parent}/{DATE}_{partner}.csv'
+        with open(f'{DATE}_{partner}.csv', 'w') as partner_csv:
+            csv_writer = csv.DictWriter(partner_csv, fieldnames=fieldnames)
+            csv_writer.writeheader()
+            for line in partner_log_record_collector(partner, partner_log_record_list):
+                csv_writer.writerow(line)
+
+    return partner_log_fp_dict

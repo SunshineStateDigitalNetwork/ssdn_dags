@@ -2,6 +2,10 @@
 ## Submit data to DPLA DAG
 
 Trigger with a config: `{"file": "<data submission file>"}`
+    Airflow system variables:
+        - ssdn_env
+        - gdrive_credential_path or gdrive_credential_token
+        - gdrive_log_folder
 """
 
 from datetime import datetime, timedelta
@@ -11,6 +15,7 @@ import os
 from airflow import DAG
 
 from airflow.operators.bash import BashOperator
+from airflow.decorators import task
 from airflow.models import Variable
 
 PATH = os.path.abspath(os.path.dirname(__file__))
@@ -43,4 +48,19 @@ with DAG('submit_to_dpla',
         bash_command='aws s3 ls s3://dpla-hub-fl',
     )
 
-    s3_upload >> check_s3_contents
+    @task(task_id='publish_reports')
+    def publish_reports():
+        """
+
+        :return:
+        """
+        manatus_tsv_log_fp = os.path.join(ssdn_assets.LOG_PATH, 'manatus_errors.tsv')
+        gdrive_folder_id = Variable.get('gdrive_folder_id')
+        credentials = ssdn_assets.gdrive_file_auth(Variable.get("gdrive_credential_path"))
+        partner_csv_reports = ssdn_assets.spreadsheet_separator(manatus_tsv_log_fp)
+        partner_gdrive_reports = ssdn_assets.upload_to_folder(gdrive_folder_id, credentials, partner_csv_reports)
+        return partner_gdrive_reports
+
+    publish_reports = publish_reports()
+
+    s3_upload >> check_s3_contents >> publish_reports
