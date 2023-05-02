@@ -202,7 +202,7 @@ def spreadsheet_separator(log_spreadsheet_fp):
     counts = Counter(partner_list)
     for partner in counts:
         partner_log_fp_dict[partner] = f'{log_spreadsheet_fp.parent}/{DATE}_{partner}.csv'
-        with open(f'{DATE}_{partner}.csv', 'w') as partner_csv:
+        with open(f'{log_spreadsheet_fp.parent}/{DATE}_{partner}.csv', 'w') as partner_csv:
             csv_writer = csv.DictWriter(partner_csv, fieldnames=fieldnames)
             csv_writer.writeheader()
             for line in partner_log_record_collector(partner, partner_log_record_list):

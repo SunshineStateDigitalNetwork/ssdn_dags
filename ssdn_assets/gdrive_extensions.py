@@ -3,7 +3,7 @@ from pathlib import Path
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
-from googleapiclient.error import HttpError
+from googleapiclient.errors import HttpError
 
 
 def gdrive_file_auth(fp):
