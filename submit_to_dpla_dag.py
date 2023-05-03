@@ -59,7 +59,8 @@ with DAG('submit_to_dpla',
         credentials = ssdn_assets.gdrive_file_auth(Variable.get("gdrive_credential_path"))
         partner_csv_reports = ssdn_assets.spreadsheet_separator(manatus_tsv_log_fp)
         partner_gdrive_reports = ssdn_assets.upload_to_folder(gdrive_folder_id, credentials, partner_csv_reports)
-        return partner_gdrive_reports
+        for k,v in partner_gdrive_reports.items():
+            print(f'{k}: {v}')
 
     publish_reports = publish_reports()
 
