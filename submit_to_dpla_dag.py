@@ -36,6 +36,9 @@ with DAG('submit_to_dpla',
          description='Submit finished data to DPLA',
          tags=['ssdn', 'submit'],
          start_date=datetime(2023, 1, 1),
+         schedule_interval='@quarterly',
+         catchup=False,
+         doc_md=__doc__,
          ) as dag:
 
     s3_upload = BashOperator(
