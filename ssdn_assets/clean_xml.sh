@@ -2,6 +2,8 @@
 
 command -v xmlstarlet >/dev/null 2>&1 || { echo >&2 "I require xmlstarlet but it's not installed.  Aborting."; exit 1; }
 
+if [ -d .back_up ]; then rm -Rf .back_up; fi
+
 clean_xml_file () {
   xmlstarlet tr "$dirname"/xslt/stripEmptyElements.xsl .back_up/"$1" >> "$1"
   if [[ $? -gt 0 ]]
@@ -18,9 +20,7 @@ dirname=$(dirname "$0")
 echo "$dirname"
 
 cd "$1" || exit
-if [ -d .back_up ]
-  then rm -Rf .back_up
-fi
+#if [ -d .back_up ]; then rm -Rf .back_up; fi
 mkdir .back_up
 for f in $( ls *.xml ); do
   echo "Moving & cleaning $f"
