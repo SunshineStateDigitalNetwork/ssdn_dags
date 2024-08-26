@@ -15,7 +15,7 @@ rewind_dir () {
 }
 
 dirname=$(dirname "$0")
-#echo "$dirname"
+echo "$dirname"
 
 cd "$1" || exit
 if [ -d .back_up ]
