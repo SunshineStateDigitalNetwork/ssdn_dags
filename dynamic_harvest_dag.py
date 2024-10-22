@@ -127,4 +127,10 @@ with DAG('ssdn_dynamic_harvest',
             """,
         )
 
-        chain([repo_update, clean_up], partner_harvest, partner_clean_xml_files, partner_transform, dlis_internet_archive, add_flmem, dedupe_records,  dpla_local_subjects, count_records)
+        #chain([repo_update, clean_up], partner_harvest, partner_clean_xml_files, partner_transform, dlis_internet_archive, add_flmem, dedupe_records,  dpla_local_subjects, count_records)
+        
+        """
+        Disabling dlis_internet_archive due to diminished services at AI atm
+        """
+        chain([repo_update, clean_up], partner_harvest, partner_clean_xml_files, partner_transform, add_flmem, dedupe_records,  dpla_local_subjects, count_records)
+
