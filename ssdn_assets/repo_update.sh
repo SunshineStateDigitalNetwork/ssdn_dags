@@ -1,15 +1,46 @@
 #!/bin/bash
 
+# Airflow sometimes launches with HOME unset.
+# Git safe.directory entries are stored in ~/.gitconfig.
+if [[ -z "${HOME}" ]]; then
+    export HOME=$(getent passwd "$(whoami)" | cut -d: -f6)
+fi
+
+# Debugging output
+echo "HOME=$HOME"
+git config --show-origin --get-all safe.directory
+
 repo_update () {
-  cd $1 && git remote update -p 1> /dev/null ;
-  git merge --ff-only @{u} 1> /dev/null
-  if [[ $? -gt 0 ]]
-    then echo "Repo path: $1" && exit 1
-    else exit 0
-  fi
+
+    local repo="$1"
+
+    cd "$repo" || {
+        echo "Unable to access repo: $repo"
+        return 1
+    }
+
+    git remote update -p >/dev/null
+    rc=$?
+
+    if [[ $rc -ne 0 ]]; then
+        echo "Repo path: $repo"
+        return $rc
+    fi
+
+    git merge --ff-only @{u} >/dev/null
+    rc=$?
+
+    if [[ $rc -ne 0 ]]; then
+        echo "Repo path: $repo"
+        return $rc
+    fi
+
+    return 0
 }
 
 for repo in "$@"
 do
-  repo_update "$repo"
+    repo_update "$repo" || exit $?
 done
+
+exit 0
